@@ -1,4 +1,4 @@
-{ lib, stdenv, buildGoModule, fetchFromGitHub, pkgs, ... }:
+{ buildGoModule, fetchFromGitHub, ... }:
 
 buildGoModule rec {
   pname = "prysm";

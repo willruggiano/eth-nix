@@ -7,12 +7,14 @@ rec {
   outputs = { self, nixpkgs, utils, ... }:
     let
       system = "x86_64-linux";
+      overlay = final: prev: {
+        ethdo = prev.callPackage ./packages/ethdo { };
+        prysm = prev.callPackage ./packages/prysm { };
+      };
       pkgs = import nixpkgs {
         inherit system;
         overlays = [
-          (final: prev: {
-            prysm = prev.callPackage ./packages/prysm { };
-          })
+          overlay
         ];
       };
     in
@@ -65,6 +67,10 @@ rec {
           drv = pkgs.prysm;
           name = "validator";
         };
+
+        ethdo = utils.lib.mkApp {
+          drv = pkgs.ethdo;
+        };
       };
 
       devShell."${system}" = pkgs.mkShell {
@@ -72,8 +78,10 @@ rec {
         buildInputs = with pkgs; [ nixopsUnstable nodejs ];
       };
 
+      inherit overlay;
+
       packages."${system}" = {
-        inherit (pkgs) prysm;
+        inherit (pkgs) ethdo prysm;
       };
     };
 }
