@@ -1,6 +1,9 @@
-{ config, lib, pkgs, ... }:
+_:
 
-with lib;
-let
-in
-{ }
+{
+  import = [
+    ./beacon.nix
+    ./client-stats.nix
+    ./validator.nix
+  ];
+}

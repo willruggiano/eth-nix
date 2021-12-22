@@ -7,6 +7,10 @@ in
   options = {
     services.prysm.beacon = {
       enable = mkEnableOption "Prysm beacon node";
+      package = mkOption {
+        type = types.package;
+        default = pkgs.prysm;
+      };
       eth1-header-req-limit = mkOption {
         type = types.int;
         description = "Maximum number of headers that a deposit log query can fetch";
@@ -44,7 +48,7 @@ in
             fallback-web3providers = with strings; concatMapStrings (p: "--fallback-web3provider " + p) cfg.web3providerFallbacks;
           in
           ''
-            ${pkgs.prysm}/bin/beacon-chain \
+            ${cfg.package}/bin/beacon-chain \
               --rpc-host 0.0.0.0 --grpc-gateway-host 0.0.0.0 --monitoring-host 0.0.0.0 \
               --http-web3provider ${cfg.web3provider} ${fallback-web3providers} \
               --eth1-header-req-limit ${cfg.eth1-header-req-limit} \
