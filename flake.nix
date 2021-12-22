@@ -1,10 +1,10 @@
 rec {
   description = "A set of NixOps configurations for Ethereum 2 nodes.";
 
-  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+  inputs.nixpkgs.url = "path:/home/bombadil/dev/nixpkgs";
   inputs.utils.url = "github:numtide/flake-utils";
 
-  outputs = { self, nixpkgs, utils, ... }:
+  outputs = { self, nixpkgs, utils, ... } @ inputs:
     let
       system = "x86_64-linux";
       overlay = final: prev: {
@@ -19,6 +19,8 @@ rec {
       };
     in
     {
+      inherit pkgs;
+
       nixosModules = {
         geth = import ./modules/geth;
         prysm = import ./modules/prysm;
@@ -30,10 +32,10 @@ rec {
         validator = import ./nodes/validator;
 
         default = {
-          inherit nixpkgs execution beacon validator;
+          inherit nixpkgs;
 
           network = {
-            inherit description;
+            inherit description execution beacon validator;
 
             enableRollback = true;
             storage.legacy = {
@@ -42,6 +44,8 @@ rec {
           };
 
           defaults = {
+            deployment.targetEnv = "virtualbox";
+
             imports = [
               ./nodes/common.nix
             ];
@@ -75,7 +79,10 @@ rec {
 
       devShell."${system}" = pkgs.mkShell {
         name = "eth-nix";
-        buildInputs = with pkgs; [ nixopsUnstable nodejs ];
+        buildInputs = with pkgs; [
+          (pkgs.nixopsUnstable.withPlugins (ps: with ps; [ nixopsvbox ]))
+          nodejs
+        ];
       };
 
       inherit overlay;

@@ -29,7 +29,6 @@ in
       web3provider = mkOption {
         type = types.str;
         description = "The primary execution node";
-        default = "";
       };
       web3providerFallbacks = with types; listOf str;
       description = "Fallback execution node(s)";
