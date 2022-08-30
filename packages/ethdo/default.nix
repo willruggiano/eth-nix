@@ -1,5 +1,8 @@
-{ buildGoModule, fetchFromGitHub, ... }:
-
+{
+  buildGoModule,
+  fetchFromGitHub,
+  ...
+}:
 buildGoModule rec {
   pname = "ethdo";
   version = "1.15.1";

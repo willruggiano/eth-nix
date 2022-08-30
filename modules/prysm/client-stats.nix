@@ -1,9 +1,12 @@
-{ config, lib, pkgs, ... }:
-
-with lib;
-let cfg = services.prysm.client-stats;
-in
 {
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+with lib; let
+  cfg = services.prysm.client-stats;
+in {
   options = {
     services.prysm.client-stats = {
       enable = mkEnableOption "Prysm client stats";
@@ -32,7 +35,7 @@ in
     systemd.user.services.client-stats = {
       description = "Prysm client stats";
       enable = true;
-      wantedBy = [ "default.target" ];
+      wantedBy = ["default.target"];
       serviceConfig = {
         ExecStart = ''
           ${cfg.package}/bin/client-stats \

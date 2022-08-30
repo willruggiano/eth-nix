@@ -1,14 +1,17 @@
-{ config, lib, pkgs, ... }:
-
-with lib;
-let cfg = config.services.geth;
-in
 {
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+with lib; let
+  cfg = config.services.geth;
+in {
   options = {
     services.geth = {
       enable = mkEnableOption "geth";
       network = mkOption {
-        type = with types; enum [ "mainnet" "goerli" "rinkby" "ropsten" ];
+        type = with types; enum ["mainnet" "goerli" "rinkby" "ropsten"];
         description = "The network to run on";
         default = "mainnet";
       };
@@ -19,7 +22,7 @@ in
     systemd.services.geth = {
       description = "geth";
       enable = true;
-      wantedBy = [ "default.target" ];
+      wantedBy = ["default.target"];
       serviceConfig = {
         ExecStart = ''
           ${pkgs.go-ethereum}/bin/geth \

@@ -1,6 +1,4 @@
-_:
-
-{
+_: {
   import = [
     ./beacon.nix
     ./client-stats.nix
