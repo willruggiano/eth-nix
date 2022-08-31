@@ -5,25 +5,23 @@
   ...
 }:
 with lib; let
-  cfg = services.prysm.beacon;
+  cfg = config.services.prysm.validator;
 in {
-  options = {
-    services.prysm.validator = {
-      enable = mkEnableOption "Prysm validator";
-      package = mkOption {
-        type = types.package;
-        default = pkgs.prysm;
-      };
-      network = mkOption {
-        type = with types; enum ["mainnet" "prater" "pyrmont"];
-        description = "The network to run on";
-        default = "mainnet";
-      };
-      beacon-rpc-provider = mkOption {
-        type = types.str;
-        description = "Beacon node RPC provider endpoint";
-        default = "127.0.0.1:4000";
-      };
+  options.services.prysm.validator = {
+    enable = mkEnableOption "Prysm validator";
+    package = mkOption {
+      type = types.package;
+      default = pkgs.prysm;
+    };
+    network = mkOption {
+      type = with types; enum ["mainnet" "prater" "pyrmont"];
+      description = "The network to run on";
+      default = "mainnet";
+    };
+    beacon-rpc-provider = mkOption {
+      type = types.str;
+      description = "Beacon node RPC provider endpoint";
+      default = "127.0.0.1:4000";
     };
   };
 

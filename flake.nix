@@ -9,60 +9,75 @@
     nixpkgs,
     utils,
     ...
-  } @ inputs: let
-    system = "x86_64-linux";
-    overlay = final: prev: {
-      ethdo = prev.callPackage ./packages/ethdo {};
-      prysm = prev.callPackage ./packages/prysm {};
-    };
-    pkgs = import nixpkgs {
-      inherit system;
-      overlays = [overlay];
-    };
-  in {
-    apps."${system}" = {
-      geth = utils.lib.mkApp {
-        drv = pkgs.go-ethereum;
-        name = "geth";
+  } @ inputs:
+    (utils.lib.mkFlake {
+      inherit self inputs;
+      supportedSystems = ["x86_64-linux"];
+
+      channelsConfig = {allowBroken = true;};
+
+      sharedOverlays = [self.overlays.default];
+
+      hostDefaults.modules = [
+        ./modules/prysm
+      ];
+
+      hosts = {
+        mono = {
+          system = "x86_64-linux";
+          modules = [
+            "${nixpkgs}/nixos/modules/virtualisation/digital-ocean-image.nix"
+            ./hosts/mono
+          ];
+        };
       };
 
-      beacon-chain = utils.lib.mkApp {
-        drv = pkgs.prysm;
-        name = "beacon-chain";
+      outputsBuilder = channels: {
+        apps = let
+          pkgs = channels.nixpkgs;
+        in {
+          geth = utils.lib.mkApp {
+            drv = pkgs.go-ethereum;
+            name = "geth";
+          };
+
+          beacon-chain = utils.lib.mkApp {
+            drv = pkgs.prysm;
+            name = "beacon-chain";
+          };
+          client-stats = utils.lib.mkApp {
+            drv = pkgs.prysm;
+            name = "client-stats";
+          };
+          validator = utils.lib.mkApp {
+            drv = pkgs.prysm;
+            name = "validator";
+          };
+
+          ethdo = utils.lib.mkApp {
+            drv = pkgs.ethdo;
+          };
+        };
+
+        devShells.default = channels.nixpkgs.mkShell {
+          name = "eth-nix";
+          buildInputs = with channels.nixpkgs; [morph nodejs];
+        };
+
+        packages = utils.lib.exportPackages self.overlays channels;
       };
-      client-stats = utils.lib.mkApp {
-        drv = pkgs.prysm;
-        name = "client-stats";
-      };
-      validator = utils.lib.mkApp {
-        drv = pkgs.prysm;
-        name = "validator";
+    })
+    // {
+      nixosModules = {
+        geth = import ./modules/geth;
+        prysm = import ./modules/prysm;
       };
 
-      ethdo = utils.lib.mkApp {
-        drv = pkgs.ethdo;
+      overlays.default = final: prev: {
+        bls = prev.callPackage ./packages/bls {};
+        blst = prev.callPackage ./packages/blst {};
+        ethdo = prev.callPackage ./packages/ethdo {};
+        prysm = prev.callPackage ./packages/prysm {};
       };
     };
-
-    devShell."${system}" = pkgs.mkShell {
-      name = "eth-nix";
-      buildInputs = with pkgs; [morph nodejs];
-    };
-
-    nixosConfigurations = {
-      node = nixpkgs.lib.nixosSystem {
-        inherit system;
-        modules = [];
-      };
-    };
-
-    nixosModules = {
-      geth = import ./modules/geth;
-      prysm = import ./modules/prysm;
-    };
-
-    overlays.default = overlay;
-
-    packages."${system}" = utils.lib.exportPackages self.overlays {inherit pkgs;};
-  };
 }

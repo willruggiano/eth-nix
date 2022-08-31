@@ -5,29 +5,27 @@
   ...
 }:
 with lib; let
-  cfg = services.prysm.client-stats;
+  cfg = config.services.prysm.client-stats;
 in {
-  options = {
-    services.prysm.client-stats = {
-      enable = mkEnableOption "Prysm client stats";
-      package = mkOption {
-        type = types.package;
-        default = pkgs.prysm;
-      };
-      validator-metrics-url = mkOption {
-        type = types.str;
-        description = "The url of the validator instance";
-        default = "127.0.0.1:8081/metrics";
-      };
-      beacon-node-metrics-url = mkOption {
-        type = types.str;
-        description = "The url of the beacon node instance";
-        default = "127.0.0.1:8080/metrics";
-      };
-      api-url = mkOption {
-        type = types.str;
-        description = "The url of the client-stats api url";
-      };
+  options.services.prysm.client-stats = {
+    enable = mkEnableOption "Prysm client stats";
+    package = mkOption {
+      type = types.package;
+      default = pkgs.prysm;
+    };
+    validator-metrics-url = mkOption {
+      type = types.str;
+      description = "The url of the validator instance";
+      default = "127.0.0.1:8081/metrics";
+    };
+    beacon-node-metrics-url = mkOption {
+      type = types.str;
+      description = "The url of the beacon node instance";
+      default = "127.0.0.1:8080/metrics";
+    };
+    api-url = mkOption {
+      type = types.str;
+      description = "The url of the client-stats api url";
     };
   };
 
