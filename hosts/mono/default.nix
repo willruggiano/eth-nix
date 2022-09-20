@@ -20,10 +20,12 @@ in {
       network = eth2network;
       inherit beacon-rpc-provider;
     };
-    client-stats = {
-      enable = true;
-    };
+    # client-stats = {
+    #   enable = true;
+    # };
   };
 
   services.openssh.enable = true;
+
+  system.stateVersion = "22.11";
 }

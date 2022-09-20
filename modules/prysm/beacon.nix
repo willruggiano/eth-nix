@@ -21,7 +21,7 @@ in {
     network = mkOption {
       type = with types; enum ["mainnet" "prater" "pyrmont"];
       description = "The network to run on";
-      default = "mainnet";
+      default = "prater";
     };
     p2p-max-peers = mkOption {
       type = types.int;

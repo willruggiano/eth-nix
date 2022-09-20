@@ -16,7 +16,7 @@ in {
     network = mkOption {
       type = with types; enum ["mainnet" "prater" "pyrmont"];
       description = "The network to run on";
-      default = "mainnet";
+      default = "prater";
     };
     beacon-rpc-provider = mkOption {
       type = types.str;
