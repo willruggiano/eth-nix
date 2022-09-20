@@ -20,6 +20,9 @@ in {
       network = eth2network;
       inherit beacon-rpc-provider;
     };
+    client-stats = {
+      enable = true;
+    };
   };
 
   services.openssh.enable = true;

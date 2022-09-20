@@ -57,6 +57,10 @@
           ethdo = utils.lib.mkApp {
             drv = pkgs.ethdo;
           };
+          prysmctl = utils.lib.mkApp {
+            drv = pkgs.prysm;
+            name = "prysmctl";
+          };
         };
 
         devShells.default = channels.nixpkgs.mkShell {
@@ -69,13 +73,10 @@
     })
     // {
       nixosModules = {
-        geth = import ./modules/geth;
         prysm = import ./modules/prysm;
       };
 
       overlays.default = final: prev: {
-        bls = prev.callPackage ./packages/bls {};
-        blst = prev.callPackage ./packages/blst {};
         ethdo = prev.callPackage ./packages/ethdo {};
         prysm = prev.callPackage ./packages/prysm {};
       };
