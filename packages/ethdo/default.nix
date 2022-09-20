@@ -1,21 +1,23 @@
 {
-  buildGoModule,
-  fetchFromGitHub,
-  ...
+  stdenv,
+  fetchzip,
+  autoPatchelfHook,
+  gcc,
 }:
-buildGoModule rec {
+stdenv.mkDerivation rec {
   pname = "ethdo";
-  version = "1.15.1";
+  version = "1.25.3";
 
-  src = fetchFromGitHub {
-    owner = "wealdtech";
-    repo = "ethdo";
-    rev = "v${version}";
-    hash = "sha256-kH6Y3/5jvkP0C7Ok2Ve+VEzAk3TMG6ji+XO7UzDBfIQ=";
+  src = fetchzip {
+    url = "https://github.com/wealdtech/ethdo/releases/download/v${version}/ethdo-${version}-linux-amd64.tar.gz";
+    hash = "sha256-n//ozqz+Orq38d5b1LkT54Hw22+Pdaisf98Au//Kv8o=";
   };
 
-  runVend = true;
-  vendorSha256 = "sha256-DWN2x3zDAliIo2nO1O2EoGyoBknXgL7NBXtuOZ9/vME=";
+  nativeBuildInputs = [autoPatchelfHook stdenv.cc.cc.lib];
 
-  doCheck = false;
+  dontConfigure = true;
+
+  installPhase = ''
+    install -m755 -D ethdo $out/bin/ethdo
+  '';
 }
