@@ -18,8 +18,9 @@ in {
       description = "Accept the terms of use";
       default = true;
     };
+    checkpoint-sync = mkEnableOption "Enable the checkpoint sync feature";
     network = mkOption {
-      type = with types; enum ["mainnet" "prater" "pyrmont"];
+      type = with types; enum ["mainnet" "prater"];
       description = "The network to run on";
       default = "prater";
     };
@@ -39,12 +40,23 @@ in {
       # TODO: Make this depend on whether geth is enabled.
       after = ["geth-execution.service"];
       serviceConfig = {
-        ExecStart = concatStringsSep " " ([
-            "${cfg.package}/bin/beacon-chain"
-            "--${cfg.network}"
-          ]
-          ++ cfg.extra-arguments
-          ++ (optional cfg.accept-terms-of-use "--accept-terms-of-use"));
+        ExecStart = let
+          checkpoint-sync-url =
+            if cfg.network == "mainnet"
+            then "https://sync.invis.tools"
+            else "prater-sync.invis.tools";
+          genesis-beacon-api-url =
+            if cfg.network == "mainnet"
+            then "https://sync.invis.tools"
+            else "prater-sync.invis.tools";
+        in
+          concatStringsSep " " ([
+              "${cfg.package}/bin/beacon-chain"
+              "--${cfg.network}"
+            ]
+            ++ cfg.extra-arguments
+            ++ (optionals cfg.checkpoint-sync ["--checkpoint-sync-url=${checkpoint-sync-url}" "--genesis-beacon-api-url=${genesis-beacon-api-url}"])
+            ++ (optional cfg.accept-terms-of-use "--accept-terms-of-use"));
         Restart = "always";
         RestartSec = 30;
       };

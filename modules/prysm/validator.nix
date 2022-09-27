@@ -19,7 +19,7 @@ in {
       default = true;
     };
     network = mkOption {
-      type = with types; enum ["mainnet" "prater" "pyrmont"];
+      type = with types; enum ["mainnet" "prater"];
       description = "The network to run on";
       default = "prater";
     };
