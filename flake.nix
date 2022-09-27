@@ -22,16 +22,6 @@
         ./modules/prysm
       ];
 
-      hosts = {
-        mono = {
-          system = "x86_64-linux";
-          modules = [
-            "${nixpkgs}/nixos/modules/virtualisation/digital-ocean-image.nix"
-            ./hosts/mono
-          ];
-        };
-      };
-
       outputsBuilder = channels: {
         apps = let
           pkgs = channels.nixpkgs;
