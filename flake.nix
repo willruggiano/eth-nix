@@ -12,7 +12,7 @@
   } @ inputs:
     (utils.lib.mkFlake {
       inherit self inputs;
-      supportedSystems = ["x86_64-linux"];
+      supportedSystems = ["aarch64-linux" "x86_64-linux"];
 
       channelsConfig = {allowBroken = true;};
 
