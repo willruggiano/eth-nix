@@ -1,0 +1,9 @@
+TODO
+[ ] Add pre-commit hooks via nix
+[@] NixOS modules for Ethereum services/clients
+[ ] Re-consider generating JWT tokens via `runCommand`
+[ ] Review security of systemd services and Ethereum client command-line options
+[ ] Deploy and maintain a Raspberry Pi 4 Ethereum node
+[ ] Use ethdo to interact with the Ethereum services running on the Pi
+[ ] Testnet
+[ ] Profit!
