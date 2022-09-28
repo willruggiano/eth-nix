@@ -9,10 +9,6 @@ with lib; let
 in {
   options.services.ethereum.consensus.prysm.beacon-chain = {
     enable = mkEnableOption "Prysm beacon node";
-    package = mkOption {
-      type = types.package;
-      default = pkgs.prysm;
-    };
     accept-terms-of-use = mkOption {
       type = types.bool;
       description = "Accept the terms of use";
@@ -59,7 +55,7 @@ in {
           MemoryDenyWriteExecute = true;
         };
         script = concatStringsSep " " ([
-            "${cfg.package}/bin/beacon-chain"
+            "${config.services.ethereum.consensus.prysm.package}/bin/beacon-chain"
             "--${cfg.network}"
             "--datadir /var/lib/${state-dir}"
             "--restore-target-dir /var/lib/${state-dir}"

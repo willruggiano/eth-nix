@@ -9,10 +9,6 @@ with lib; let
 in {
   options.services.ethereum.consensus.prysm.validator = {
     enable = mkEnableOption "Prysm validator";
-    package = mkOption {
-      type = types.package;
-      default = pkgs.prysm;
-    };
     accept-terms-of-use = mkOption {
       type = types.bool;
       description = "Accept the terms of use";
@@ -55,7 +51,7 @@ in {
           MemoryDenyWriteExecute = true;
         };
         script = concatStringsSep " " ([
-            "${cfg.package}/bin/validator"
+            "${config.services.ethereum.consensus.prysm.package}/bin/validator"
             "--${cfg.network}"
             "--datadir /var/lib/${state-dir}"
             "--wallet-dir /var/lib/${state-dir}/prysm-wallet-v2"

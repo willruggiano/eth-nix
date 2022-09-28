@@ -12,7 +12,14 @@ in {
     ./validator.nix
   ];
 
+  options.services.ethereum.consensus.prysm = {
+    package = mkOption {
+      type = types.package;
+      default = pkgs.prysm;
+    };
+  };
+
   config = mkIf (cfg.beacon-chain.enable || cfg.validator.enable || cfg.client-stats.enable) {
-    # TODO: Create a "prysm" user for each of the prysm services to run under?
+    environment.systemPackages = [cfg.package];
   };
 }

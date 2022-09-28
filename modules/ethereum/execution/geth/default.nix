@@ -27,6 +27,8 @@ in {
 
   config = mkIf cfg.enable (mkMerge [
     {
+      environment.systemPackages = [cfg.package];
+
       systemd.services.geth = let
         state-dir = "ethereum/${cfg.network}/execution";
       in {
