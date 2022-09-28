@@ -56,10 +56,8 @@ in {
     }
     (mkIf (config.services.ethereum.jwt-secret.enable && config.services.ethereum.jwt-secret.generate) {
       systemd.services.geth = {
-        serviceConfig = {
-          after = ["generate-jwt-secret.service" "network.target"];
-          wants = ["generate-jwt-secret.service"];
-        };
+        after = ["generate-jwt-secret.service" "network.target"];
+        wants = ["generate-jwt-secret.service"];
       };
     })
   ]);
