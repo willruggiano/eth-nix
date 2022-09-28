@@ -5,11 +5,10 @@
   ...
 }:
 with lib; let
-  cfg = config.services.prysm;
+  cfg = config.services.ethereum.consensus.prysm;
 in {
   imports = [
     ./beacon.nix
-    ./client-stats.nix
     ./validator.nix
   ];
 

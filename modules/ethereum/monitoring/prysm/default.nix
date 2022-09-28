@@ -1,0 +1,3 @@
+{
+  imports = [./client-stats.nix];
+}

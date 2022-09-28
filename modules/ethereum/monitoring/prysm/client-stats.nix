@@ -5,9 +5,9 @@
   ...
 }:
 with lib; let
-  cfg = config.services.prysm.client-stats;
+  cfg = config.services.ethereum.monitoring.prysm.client-stats;
 in {
-  options.services.prysm.client-stats = {
+  options.services.ethereum.monitoring.prysm.client-stats = {
     enable = mkEnableOption "Prysm client stats";
     package = mkOption {
       type = types.package;
@@ -30,10 +30,14 @@ in {
   };
 
   config = mkIf cfg.enable {
-    systemd.user.services.client-stats = {
+    systemd.services.client-stats = let
+      inherit (config.services.ethereum.consensus) prysm;
+      dependent-services = (optional prysm.beacon-chain.enable "beacon-chain.service") ++ (optional prysm.validator.enable "validator.service");
+    in {
       description = "Prysm client stats";
       enable = true;
-      wantedBy = ["default.target"];
+      wantedBy = ["multi-user.target"];
+      after = dependent-services;
       serviceConfig = {
         ExecStart = ''
           ${cfg.package}/bin/client-stats \
@@ -42,8 +46,13 @@ in {
             --clientstats-api-url ${cfg.api-url}
         '';
         Restart = "always";
-        RestartSec = 30;
       };
+      script = ''
+        ${cfg.package}/bin/client-stats \
+          --clientstats-api-url ${cfg.api-url} \
+          ${optionalString prysm.beacon-chain.enable "--beacon-node-metrics-url ${cfg.beacon-node-metrics-url}"} \
+          ${optionalString prysm.validator.enable "--validator-metrics-url ${cfg.validator-metrics-url}"} \
+      '';
     };
   };
 }

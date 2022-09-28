@@ -18,9 +18,7 @@
 
       sharedOverlays = [self.overlays.default];
 
-      hostDefaults.modules = [
-        ./modules/prysm
-      ];
+      hostDefaults.modules = [./modules/ethereum];
 
       outputsBuilder = channels: {
         apps = let
@@ -63,7 +61,7 @@
     })
     // {
       nixosModules = {
-        prysm = import ./modules/prysm;
+        ethereum = import ./modules/ethereum;
       };
 
       overlays.default = final: prev: {
