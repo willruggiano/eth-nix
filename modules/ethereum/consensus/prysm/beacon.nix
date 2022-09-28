@@ -52,7 +52,7 @@ in {
           Restart = "always";
           StateDirectory = state-dir;
           # Hardening:
-          PrivateTemp = true;
+          PrivateTmp = true;
           ProtectSystem = "full";
           NoNewPrivileges = true;
           PrivateDevices = true;
