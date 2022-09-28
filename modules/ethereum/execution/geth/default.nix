@@ -51,6 +51,7 @@ in {
             "--nousb"
             "--${cfg.network}"
             "--datadir /var/lib/${state-dir}"
+            "--ethash.dagdir /var/lib/${state-dir}/.ethash"
           ]
           ++ cfg.extra-arguments
           ++ (optional config.services.ethereum.jwt-secret.enable "--authrpc.jwtsecret ${config.services.ethereum.jwt-secret.path}"));
