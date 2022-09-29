@@ -33,16 +33,6 @@ in {
 
   config = mkIf cfg.enable (mkMerge [
     {
-      environment.systemPackages = [
-        (pkgs.writeShellApplication {
-          name = "validator-accounts-import";
-          runtimeInputs = [config.services.ethereum.consensus.prysm.package];
-          text = ''
-            validator accounts import --wallet-dir /var/lib/${state-dir}/prysm-wallet-v2 --wallet-password-file ${cfg.wallet-password-file} --keys-dir "$1"
-          '';
-        })
-      ];
-
       systemd.services.validator = let
         state-dir = "ethereum/${cfg.network}/consensus";
       in {
