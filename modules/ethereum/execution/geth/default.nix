@@ -25,43 +25,53 @@ in {
     };
   };
 
-  config = mkIf cfg.enable (mkMerge [
-    {
-      environment.systemPackages = [cfg.package];
+  config = let
+    state-dir = "ethereum/${cfg.network}/execution";
+  in
+    mkIf cfg.enable (mkMerge [
+      {
+        environment.systemPackages = [
+          cfg.package
+          (pkgs.writeShellApplication {
+            name = "geth-admin";
+            runtimeInputs = [cfg.package];
+            text = ''
+              geth --datadir /var/lib/${state-dir} "$@"
+            '';
+          })
+        ];
 
-      systemd.services.geth = let
-        state-dir = "ethereum/${cfg.network}/execution";
-      in {
-        description = "Geth";
-        enable = true;
-        wantedBy = ["multi-user.target"];
-        serviceConfig = {
-          DynamicUser = true;
-          Restart = "always";
-          StateDirectory = state-dir;
-          # Hardening:
-          PrivateTmp = true;
-          ProtectSystem = "full";
-          NoNewPrivileges = true;
-          PrivateDevices = true;
-          MemoryDenyWriteExecute = true;
+        systemd.services.geth = {
+          description = "Geth";
+          enable = true;
+          wantedBy = ["multi-user.target"];
+          serviceConfig = {
+            DynamicUser = true;
+            Restart = "always";
+            StateDirectory = state-dir;
+            # Hardening:
+            PrivateTmp = true;
+            ProtectSystem = "full";
+            NoNewPrivileges = true;
+            PrivateDevices = true;
+            MemoryDenyWriteExecute = true;
+          };
+          script = concatStringsSep " " ([
+              "${cfg.package}/bin/geth"
+              "--nousb"
+              "--${cfg.network}"
+              "--datadir /var/lib/${state-dir}"
+              "--ethash.dagdir /var/lib/${state-dir}/.ethash"
+            ]
+            ++ cfg.extra-arguments
+            ++ (optional config.services.ethereum.jwt-secret.enable "--authrpc.jwtsecret ${config.services.ethereum.jwt-secret.path}"));
         };
-        script = concatStringsSep " " ([
-            "${cfg.package}/bin/geth"
-            "--nousb"
-            "--${cfg.network}"
-            "--datadir /var/lib/${state-dir}"
-            "--ethash.dagdir /var/lib/${state-dir}/.ethash"
-          ]
-          ++ cfg.extra-arguments
-          ++ (optional config.services.ethereum.jwt-secret.enable "--authrpc.jwtsecret ${config.services.ethereum.jwt-secret.path}"));
-      };
-    }
-    (mkIf (config.services.ethereum.jwt-secret.enable && config.services.ethereum.jwt-secret.generate) {
-      systemd.services.geth = {
-        after = ["generate-jwt-secret.service" "network.target"];
-        wants = ["generate-jwt-secret.service"];
-      };
-    })
-  ]);
+      }
+      (mkIf (config.services.ethereum.jwt-secret.enable && config.services.ethereum.jwt-secret.generate) {
+        systemd.services.geth = {
+          after = ["generate-jwt-secret.service" "network.target"];
+          wants = ["generate-jwt-secret.service"];
+        };
+      })
+    ]);
 }

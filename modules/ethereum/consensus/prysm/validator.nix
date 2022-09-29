@@ -31,46 +31,58 @@ in {
     };
   };
 
-  config = mkIf cfg.enable (mkMerge [
-    {
-      systemd.services.validator = let
-        state-dir = "ethereum/${cfg.network}/consensus";
-      in {
-        description = "Prysm validator";
-        enable = true;
-        wantedBy = ["multi-user.target"];
-        serviceConfig = {
-          DynamicUser = true;
-          Restart = "always";
-          StateDirectory = state-dir;
-          # Hardening:
-          PrivateTmp = true;
-          ProtectSystem = "full";
-          NoNewPrivileges = true;
-          PrivateDevices = true;
-          MemoryDenyWriteExecute = true;
+  config = let
+    state-dir = "ethereum/${cfg.network}/validator";
+  in
+    mkIf cfg.enable (mkMerge [
+      {
+        environment.systemPackages = [
+          (pkgs.writeShellApplication {
+            name = "validator-admin";
+            runtimeInputs = [config.services.ethereum.consensus.prysm.package];
+            text = concatStringsSep " " ([
+                "validator --${cfg.network} --datadir /var/lib/${state-dir} --wallet-dir /var/lib/${state-dir}/prysm-wallet-v2"
+              ]
+              ++ (optional (cfg.wallet-password-file != null) "--wallet-password-file ${cfg.wallet-password-file}"));
+          })
+        ];
+
+        systemd.services.validator = {
+          description = "Prysm validator";
+          enable = true;
+          wantedBy = ["multi-user.target"];
+          serviceConfig = {
+            DynamicUser = true;
+            Restart = "always";
+            StateDirectory = state-dir;
+            # Hardening:
+            PrivateTmp = true;
+            ProtectSystem = "full";
+            NoNewPrivileges = true;
+            PrivateDevices = true;
+            MemoryDenyWriteExecute = true;
+          };
+          script = concatStringsSep " " ([
+              "${config.services.ethereum.consensus.prysm.package}/bin/validator"
+              "--${cfg.network}"
+              "--datadir /var/lib/${state-dir}"
+              "--wallet-dir /var/lib/${state-dir}/prysm-wallet-v2"
+            ]
+            ++ cfg.extra-arguments
+            ++ (optional (cfg.wallet-password-file != null) "--wallet-password-file ${cfg.wallet-password-file}")
+            ++ (optional cfg.accept-terms-of-use "--accept-terms-of-use"));
         };
-        script = concatStringsSep " " ([
-            "${config.services.ethereum.consensus.prysm.package}/bin/validator"
-            "--${cfg.network}"
-            "--datadir /var/lib/${state-dir}"
-            "--wallet-dir /var/lib/${state-dir}/prysm-wallet-v2"
-          ]
-          ++ cfg.extra-arguments
-          ++ (optional (cfg.wallet-password-file != null) "--wallet-password-file ${cfg.wallet-password-file}")
-          ++ (optional cfg.accept-terms-of-use "--accept-terms-of-use"));
-      };
-    }
-    (mkIf config.services.ethereum.consensus.prysm.beacon.enable {
-      systemd.services.validator = {
-        after = ["beacon-chain.service"];
-        wants = ["beacon-chain.service"];
-      };
-    })
-    (mkIf (!config.services.ethereum.consensus.prysm.beacon.enable) {
-      systemd.services.validator = {
-        after = ["network.target"];
-      };
-    })
-  ]);
+      }
+      (mkIf config.services.ethereum.consensus.prysm.beacon.enable {
+        systemd.services.validator = {
+          after = ["beacon-chain.service"];
+          wants = ["beacon-chain.service"];
+        };
+      })
+      (mkIf (!config.services.ethereum.consensus.prysm.beacon.enable) {
+        systemd.services.validator = {
+          after = ["network.target"];
+        };
+      })
+    ]);
 }
