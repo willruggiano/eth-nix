@@ -19,7 +19,7 @@ in {
     };
   };
 
-  config = mkIf (cfg.beacon-chain.enable || cfg.validator.enable || cfg.client-stats.enable) {
+  config = mkIf (cfg.beacon-chain.enable || cfg.validator.enable) {
     environment.systemPackages = [cfg.package];
   };
 }
