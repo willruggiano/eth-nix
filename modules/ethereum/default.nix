@@ -7,7 +7,7 @@
 with lib; let
   cfg = config.services.ethereum;
 in {
-  imports = [./consensus ./execution ./monitoring];
+  imports = [./consensus ./execution ./mev-boost ./monitoring];
 
   options.services.ethereum = {
     jwt-secret = {

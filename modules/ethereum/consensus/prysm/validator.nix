@@ -70,18 +70,27 @@ in {
             ]
             ++ cfg.extra-arguments
             ++ (optional (cfg.wallet-password-file != null) "--wallet-password-file ${cfg.wallet-password-file}")
+            ++ (optional config.services.ethereum.mev-boost.enable "--enable-builder")
             ++ (optional cfg.accept-terms-of-use "--accept-terms-of-use"));
         };
       }
-      (mkIf config.services.ethereum.consensus.prysm.beacon.enable {
-        systemd.services.validator = {
-          after = ["beacon-chain.service"];
-          wants = ["beacon-chain.service"];
-        };
-      })
+      (mkIf config.services.ethereum.consensus.prysm.beacon.enable (mkMerge [
+        (mkIf config.services.ethereum.mev-boost.enable {
+          systemd.services.validator = {
+            after = ["beacon-chain.service" "mev-boost.service" "network-online.target"];
+            wants = ["beacon-chain.service" "mev-boost.service"];
+          };
+        })
+        (mkIf (!config.services.ethereum.mev-boost.enable) {
+          systemd.services.validator = {
+            after = ["beacon-chain.service" "network-online.target"];
+            wants = ["beacon-chain.service"];
+          };
+        })
+      ]))
       (mkIf (!config.services.ethereum.consensus.prysm.beacon.enable) {
         systemd.services.validator = {
-          after = ["network.target"];
+          after = ["network-online.target"];
         };
       })
     ]);

@@ -14,7 +14,18 @@ in {
       description = "Accept the terms of use";
       default = true;
     };
-    checkpoint-sync = mkEnableOption "Enable the checkpoint sync feature";
+    checkpoint-sync = {
+      enable = mkEnableOption "Enable the checkpoint sync feature";
+      url = mkOption {
+        type = types.str;
+        description = "URL of a synced beacon node to trust in obtaining checkpoint sync data";
+      };
+    };
+    mev-relay-url = mkOption {
+      type = types.str;
+      description = "MEV builder relay http endpoint";
+      default = "http://localhost:18550";
+    };
     network = mkOption {
       type = with types; enum ["mainnet" "prater"];
       description = "The network to run on";
@@ -42,16 +53,7 @@ in {
           })
         ];
 
-        systemd.services.beacon-chain = let
-          checkpoint-sync-url =
-            if cfg.network == "mainnet"
-            then "https://sync.invis.tools"
-            else "prater-sync.invis.tools";
-          genesis-beacon-api-url =
-            if cfg.network == "mainnet"
-            then "https://sync.invis.tools"
-            else "prater-sync.invis.tools";
-        in {
+        systemd.services.beacon-chain = {
           description = "Prysm beacon-chain node";
           enable = true;
           wantedBy = ["multi-user.target"];
@@ -73,23 +75,38 @@ in {
               "--restore-target-dir /var/lib/${state-dir}"
             ]
             ++ cfg.extra-arguments
-            ++ (optionals cfg.checkpoint-sync ["--checkpoint-sync-url ${checkpoint-sync-url}" "--genesis-beacon-api-url ${genesis-beacon-api-url}"])
+            ++ (optionals cfg.checkpoint-sync.enable ["--checkpoint-sync-url ${cfg.checkpoint-sync.url}" "--genesis-beacon-api-url ${cfg.checkpoint-sync.url}"])
             ++ (optional config.services.ethereum.jwt-secret.enable "--jwt-secret ${config.services.ethereum.jwt-secret.path}")
+            ++ (optional config.services.ethereum.mev-boost.enable) "--http-mev-relay ${cfg.mev-relay-url}"
             ++ (optional cfg.accept-terms-of-use "--accept-terms-of-use"));
         };
       }
-      (mkIf config.services.ethereum.execution.geth.enable {
-        systemd.services.beacon-chain = {
-          # TODO: Make this depend on whether geth is enabled.
-          after = ["generate-jwt-secret.service" "geth.service"];
-        };
-      })
-      (mkIf (!config.services.ethereum.execution.geth.enable) {
-        systemd.services.beacon-chain = {
-          # TODO: Make this depend on whether geth is enabled.
-          after = ["network.target"];
-          wants = ["geth.service"];
-        };
-      })
+      (mkIf config.services.ethereum.execution.geth.enable (mkMerge [
+        (mkIf config.services.ethereum.mev-boost.enable {
+          systemd.services.beacon-chain = {
+            after = ["generate-jwt-secret.service" "geth.service" "mev-boost.service" "network-online.target"];
+            wants = ["generate-jwt-secret.service" "geth.service" "mev-boost.service"];
+          };
+        })
+        (mkIf (!config.services.ethereum.mev-boost.enable) {
+          systemd.services.beacon-chain = {
+            after = ["generate-jwt-secret.service" "geth.service" "network-online.target"];
+            wants = ["generate-jwt-secret.service" "geth.service"];
+          };
+        })
+      ]))
+      (mkIf (!config.services.ethereum.execution.geth.enable) (mkMerge [
+        (mkIf config.services.ethereum.mev-boost.enable {
+          systemd.services.beacon-chain = {
+            after = ["mev-boost.service" "network-online.target"];
+            wants = ["mev-boost.service"];
+          };
+        })
+        (mkIf (!config.services.ethereum.mev-boost.enable) {
+          systemd.services.beacon-chain = {
+            after = ["network-online.target"];
+          };
+        })
+      ]))
     ]);
 }

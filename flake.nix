@@ -37,6 +37,9 @@
             drv = pkgs.prysm;
             name = "client-stats";
           };
+          mev-boost = utils.lib.mkApp {
+            drv = pkgs.mev-boost;
+          };
           validator = utils.lib.mkApp {
             drv = pkgs.prysm;
             name = "validator";
@@ -66,6 +69,7 @@
 
       overlays.default = final: prev: {
         ethdo = prev.callPackage ./packages/ethdo {};
+        mev-boost = prev.callPackage ./packages/mev-boost {};
         prysm = prev.callPackage ./packages/prysm {};
       };
     };
