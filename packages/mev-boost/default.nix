@@ -16,7 +16,7 @@ stdenv.mkDerivation rec {
     hash =
       if system == "x86_64-linux"
       then "sha256-WaOn5pXJRRjVwml2KdCL5HsWas46lFzGrdj4p5Caiec="
-      else "";
+      else "sha256-yXauXbYvkIwhB6oq7nxijVU5PdulTsaugQdOYkfGZ4Q=";
   in
     fetchurl {
       url = "https://github.com/flashbots/mev-boost/releases/download/v${version}/mev-boost_${version}_linux_${arch}.tar.gz";
