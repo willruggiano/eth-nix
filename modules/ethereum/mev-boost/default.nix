@@ -21,6 +21,11 @@ in {
       type = with types; listOf str;
       description = "Relay urls";
     };
+    relay-check = mkOption {
+      type = types.bool;
+      description = "Check relay status on startup and on the status API call";
+      default = true;
+    };
   };
 
   config = mkIf cfg.enable {
@@ -40,7 +45,7 @@ in {
         MemoryDenyWriteExecute = true;
       };
       script = ''
-        ${cfg.package}/bin/mev-boost -${cfg.network} -relay-check -relays ${concatStringsSep "," cfg.relays}
+        ${cfg.package}/bin/mev-boost -${cfg.network} ${optionalString cfg.relay-check "-relay-check"} -relays ${concatStringsSep "," cfg.relays}
       '';
     };
   };
