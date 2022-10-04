@@ -58,7 +58,6 @@ in {
           };
           script = concatStringsSep " " ([
               "${cfg.package}/bin/geth"
-              "--nousb"
               "--${cfg.network}"
               "--datadir /var/lib/${state-dir}"
               "--ethash.dagdir /var/lib/${state-dir}/.ethash"
